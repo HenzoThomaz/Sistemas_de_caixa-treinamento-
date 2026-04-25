@@ -65,6 +65,6 @@ else:
 print("-"*30)
 
 """TODO versão v2: deve conter a criação de funções, uma para confirmar pagamento, e outra caso deseja adicionar outros itens individualmente, ou seja repetir o sitema
-TODO adicionar um carrinho de compras, uma função que armazene todos os produtos do usuario em listas e no final escolha o pagamento, transformar cada forma depagamneto em uma função e so chamar-la, mais detalhes são livres
+TODO adicionar um carrinho de compras, uma função que armazene todos os produtos do usuario em listas e no final escolha o pagamento, transformar cada forma de pagamneto em uma função e so chamar-la, controlar o fluxo de codico chamando as funções manualmnete, ao invez de acarretar uma na outra, retornar variaveis ao final e nao usar mais o global, mais detalhes são livres
 """
 

@@ -5,27 +5,50 @@ def confirmar_compra():
     confirmar = input("Digite 'S/Enter' se deseja confirmar sua compra: ").lower()
     if confirmar in ["s", ""]:
         print("Pagamento confirmado, obrigado por comprar conosco, e volte sempre!!")
-        
-    else: 
+        return True
+    
+    else:
         print("Pagamento cancelado.")
+        return False
 
-    print("-"*30)
-
-def sistema_compra():
+def obter_dados():
 
     print("-"*30)
     print("Sistema de Caixa")
     print("-"*30)
-
-    #obtendo dados da compra
-    nome_produto = input("Insira o nome do produto: ")
-    valor_produto= input(f"Insira o valor de {nome_produto}: ")
-    print("-"*30)
+    global valor_produto
+    while True:
+        #obtendo dados da compra
+        nome_produto = input("Insira o nome do produto: ")
+        if nome_produto == "":
+            print("O produto deve conter um nome para continuar.")
+            continue
+        valor_produto = input(f"Insira o valor de {nome_produto}: ")
+        if valor_produto == "":
+            print("O produto deve conter um valor para continuar.")
+            continue
+    
+        print("-"*30)
+        return conversao()
     #conversão 
+def conversao():
+    global valor_produto
     valor_produto = (valor_produto).replace(",",".") 
-    valor_produto = float(valor_produto)
+    
+    try:
+        if valor_produto == str:
+            raise ValueError("valor invalido")
+        valor_produto = float(valor_produto)
+    except ValueError:
+        print("Valor inserido invalido. Use numeros na hora de digitar o valor")
+        return obter_dados()
+
+    return sistema_compra()
 
     #Organizando forma de pagamento
+def sistema_compra():
+
+    global valor_produto
 
     print(f"O total da compra ficou em R${valor_produto:.2f}, qual a forma de pagamento? ")
     a = int(input("(1)Pix ou Dinheiro, (2)Credito a vista, (3)Credito em 2x, (4)Credito em 3x ou mais: "))
@@ -60,11 +83,12 @@ def sistema_compra():
 
 #maneira de iniciar e manter o sistema o sistema rodando
 while True:
-    sistema_compra()
+    obter_dados()
     sair =input("Digite 'S' caso queira sair do sistema, se não, so aperte enter: ").lower()
-    print("-"*30)
+    
     if sair == "s":
         print("até logo")
+        print("-"*30)
         break
     
         
