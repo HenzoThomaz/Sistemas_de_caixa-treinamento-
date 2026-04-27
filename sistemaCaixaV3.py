@@ -11,11 +11,69 @@ estoque = {
     9: {"nome": "Pendrive 64GB", "preco": 40.00},
     10: {"nome": "SSD 480GB", "preco": 280.00}
 }
+fluxo = int()
+
 #Criação das funções
-def carrinho():
-  pass
 
+#Menu onde deve começar a aplicação, onde aparecera as opções do user e como acessalas
+def menu_principal():
+    print("Menu Principal")
 
+    if fluxo == 1:
+       return ver_menu()
+    
+#função que chama um menu que mostrara os itens disponiveis e seus preços
+def ver_menu():
+  print(f"| {'ID':<4} | {'Produto':<25} | {'Preço':<13} |")
+  print("-"*48)
+  for id, info in estoque.items():
+    print(f"| {id:<4} | {info['nome']:<25} | R${info['preco']:<12.2f}|")
+  print("-"*48)
+
+  return menu_principal()
+
+#TODO fazer o try except ao invez de variaveis e if else paia pra caramba 
+#função que adiciona ou remove itens em um carrinho de compras que reune todos os itens que o usuario selecionar a uma lista 
+def item_carrinho():
+    
+    print("digite (1) caso deseje adicionar itens ao carrinho, (2) para remover itens e (3) para voltar ao menu:")
+    fluxo = int(input(">> "))
+    entrada = []
+
+    if fluxo == 1:
+        print("Digite o ID do item que voçe deseja comprar: ")
+        entrada = input(">> ")
+        if entrada == "" or entrada not in estoque.len() or entrada not in carrinho:
+            print("Nenhum item foi adicionado ao carrinho")
+            print("-"*48)
+            return menu_principal()
+        carrinho = []
+        carrinho.append(entrada)
+
+    if fluxo == 2:
+        print("Digite o ID do item que voçe deseja remover: ")
+        entrada = input(">> ")
+        if entrada == "" or entrada not in estoque() or entrada not in carrinho:
+            print("Nenhum item foi removido ao carrinho")
+            print("-"*48)
+            return menu_principal()
+        carrinho=[]
+        carrinho.remove(entrada) 
+
+    else:
+       print("Voltando ao menu principal")
+       return menu_principal()
+    
+    print("-"*48)
+    return carrinho
+
+carrinho = item_carrinho()
+
+def ver_carrinho():
+   pass
+
+ver_menu()
+#variavel global de itens no carrinho
 
 
 
