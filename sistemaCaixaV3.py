@@ -32,34 +32,39 @@ def ver_menu():
 
   return menu_principal()
 
-#TODO fazer o try except ao invez de variaveis e if else paia pra caramba 
+#TODO fazer o try except ao invez de variaveis e if else paia pra caramba (talvez)
 #função que adiciona ou remove itens em um carrinho de compras que reune todos os itens que o usuario selecionar a uma lista 
 def item_carrinho():
     
     print("digite (1) caso deseje adicionar itens ao carrinho, (2) para remover itens e (3) para voltar ao menu:")
     fluxo = int(input(">> "))
     entrada = []
+    carrinho=[]
 
     if fluxo == 1:
         print("Digite o ID do item que voçe deseja comprar: ")
-        entrada = input(">> ")
-        if entrada == "" or entrada not in estoque.len() or entrada not in carrinho:
-            print("Nenhum item foi adicionado ao carrinho")
-            print("-"*48)
-            return menu_principal()
-        carrinho = []
-        carrinho.append(entrada)
+        entrada = int(input(">> "))
+
+        if entrada in estoque:
+            carrinho.append(entrada)
+            print(f"O item '{estoque[entrada]['nome']}' no valor de R${estoque[entrada]['preco']:.2f} foi adicionado ao carrinho")
+        else:
+           print("Item inexistente, nenhum item foi adicionado ao carrinho")
 
     if fluxo == 2:
         print("Digite o ID do item que voçe deseja remover: ")
         entrada = input(">> ")
-        if entrada == "" or entrada not in estoque() or entrada not in carrinho:
-            print("Nenhum item foi removido ao carrinho")
-            print("-"*48)
-            return menu_principal()
-        carrinho=[]
-        carrinho.remove(entrada) 
 
+        if entrada == "": #or entrada not in estoque() or entrada not in carrinho:
+            print("Nenhum item foi removido do carrinho")
+            print("-"*48)
+        elif entrada not in carrinho:
+           print('O item digitado não esta no carrinho, caso queira ver seu carrinho volte volte ao menu')
+        else:
+           print("Item inexistente, nenhum item foi removido ao carrinho")
+
+        carrinho.remove(entrada) 
+    
     else:
        print("Voltando ao menu principal")
        return menu_principal()
@@ -67,11 +72,28 @@ def item_carrinho():
     print("-"*48)
     return carrinho
 
-carrinho = item_carrinho()
+#TODO tentar fazer a função de ver carrinho funcionar, pq n sei linkar variaveis em outras funções, estou usando como parametro mas n sei como funciona e conseguir fazer que para cara item no carrinho ele puxe e escreva seu nome e preço numa tabela e some os valores ao final
 
-def ver_carrinho():
-   pass
+carrinho = [1,3,4]
+#carrinho = item_carrinho()
 
+def ver_carrinho(carrinho, estoque):
+    print("-"*48)
+    if len(carrinho) != 0:
+        total=0
+        print(f'{"CARRINHO":^50}')
+        print(f"| {'Produto':<25} | {'Preço':<13} |")
+        print("-"*48)
+        for item in carrinho:
+            print(f"| {estoque[item]['nome']:<25} | R${estoque[item]['preco']:<12.2f}|")
+            total = total + estoque[item]['preco']
+        print(f"Valor total: R${total:.2f}")
+
+    else:
+        print("Nenhum item adicionado ao carrinho ainda!")
+        return
+    
+ver_carrinho()
 ver_menu()
 #variavel global de itens no carrinho
 
