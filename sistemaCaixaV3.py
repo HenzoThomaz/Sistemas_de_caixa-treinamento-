@@ -14,6 +14,51 @@ estoque = {
 
 #Criação das funções
 
+#TODO teste em toda essa função, e adicionar o cancelamento de pagamento apos ja ter escolhido uma opção de pagamento, zerar o carrinho apos confirmar o pagamento e na função de alterar carrinho adicionar função de remover todos os itens
+
+#Função de pagamento, fornece diferentes opções de pagamento ao cliente e seus respectivos descontos, ao fazer a confirmação deve retornar ao menu com o carrinho zerado, como se fosse um novo cliente
+def pagamento(total, carrinho):
+    print(f"O total de sua compra ficou em R${total:.2f}, escolha a opção de pagamento dentre as seguintes:")
+    print("(1) Pix ou Dinheiro (15% off)   (2) Debito ou Credito a vista (10% off)   (3) Crédito parcelado max:15 (ate 5x sem juros e acima de 5x 10% de acrescimo)   (4) Cancelar pagamento")
+
+    try:
+        fluxo = int(input(">> ")) 
+        
+        if fluxo == 1:
+            total_15 = total * 0.85
+            print(f"O valor com o desconto de 15% fica em R${total_15:.2f}")
+
+        if fluxo == 2:
+            total_10 = total * 0.90
+            print(f"O valor com o desconto de 10% fica em R${total_10:.2f}")
+
+        if fluxo == 3:
+            print("Insira quantas parcelas voçe deseja parcelar.")
+            try:
+                parcelas = int(input(">> "))
+                if parcelas >= 2 and parcelas <= 5:
+                    total_par = total / parcelas
+                    print(f"O valor de cada parcela sem juros ficou em R${total_par:.2f}")
+                elif parcelas >= 6 and parcelas <= 15:
+                    total_plus = total * 1.10
+                    total_plus /= parcelas
+                    print(f"O valor de cada parcela com juros de 10% ficou em R${total_plus:.2f}")
+            except:
+                print("Escolha um numero valido de parcelas.")
+                return pagamento(total)
+        
+        if fluxo == 4:
+            print("Pagamento cancelado pelo cliente.")
+            return
+        
+    except:
+        print("Por que vc esta sempre tentando quebrar o codico???")
+        return 
+    else:
+        #pop(carrinho)
+        print("Obirgado pela compra e volte sempre!!")
+        return carrinho
+
 #função que chama um menu que mostrara os itens disponiveis e seus preços
 def ver_menu():
         print(f"| {'ID':<4} | {'Produto':<25} | {'Preço':<13} |")
@@ -71,8 +116,9 @@ def alterar_carrinho(carrinho):
             print("-"*48)
             return carrinho
 
-    #Função para a visualização dos itens no carrinho, mostra indice do item, nome, preço e ao final soma o valor dos itens e mostra o valor total
+#Função para a visualização dos itens no carrinho, mostra indice do item, nome, preço e ao final soma o valor dos itens e mostra o valor total
 def ver_carrinho(carrinho):
+        fluxo_carrinho = 0
         print("-"*48)
         if len(carrinho) != 0:
             total=0
@@ -83,17 +129,24 @@ def ver_carrinho(carrinho):
                 print(f"| {item} | {estoque[item]['nome']:<25} | R${estoque[item]['preco']:<12.2f}|")
                 total = total + estoque[item]['preco']
             print(f"Valor total: R${total:.2f}")
-
+            print('-'*48)
+            print("Digite (1) para confirmar seu pedido e ir a sessão de pagamento. Caso não, aperte qualquer tecla.")
+            try:
+                fluxo_carrinho = int(input(">> "))
+                if fluxo_carrinho == 1:
+                     return total and carrinho and pagamento(total, carrinho)
+            except:
+                return carrinho
         else:
             print("Nenhum item adicionado ao carrinho ainda!")
             return 
-        return carrinho
+        return carrinho 
 
 #Menu onde deve começar a aplicação, onde aparecera as opções do user e como acessalas
 def menu_principal():
     carrinho = []
     while True:
-        print(f'{"Menu Principal":^50}')
+        print(f'{"Menu Principal":^80}')
         print('-'* 48)
         print("Opções:")
         print("(1) Ver Menu de Itens  (2) Adicionar/Remover Itens ao Carrinho   (3) Ver Carrinho e Confirmar Compra   (4)Sair")
