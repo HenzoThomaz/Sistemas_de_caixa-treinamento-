@@ -14,12 +14,14 @@ estoque = {
 
 #Criação das funções
 
-#TODO teste em toda essa função, e adicionar o cancelamento de pagamento apos ja ter escolhido uma opção de pagamento, zerar o carrinho apos confirmar o pagamento e na função de alterar carrinho adicionar função de remover todos os itens
+#TODO teste em toda essa função
 
 #Função de pagamento, fornece diferentes opções de pagamento ao cliente e seus respectivos descontos, ao fazer a confirmação deve retornar ao menu com o carrinho zerado, como se fosse um novo cliente
 def pagamento(total, carrinho):
+    print("-"*110)
     print(f"O total de sua compra ficou em R${total:.2f}, escolha a opção de pagamento dentre as seguintes:")
-    print("(1) Pix ou Dinheiro (15% off)   (2) Debito ou Credito a vista (10% off)   (3) Crédito parcelado max:15 (ate 5x sem juros e acima de 5x 10% de acrescimo)   (4) Cancelar pagamento")
+    print("(1) Pix ou Dinheiro (15% off)   (2) Debito ou Credito a vista (10% off)   (3) Crédito parcelado max:15 (ate 5x sem juros e acima de 5x 10% de acrescimo) "
+    "  (4) Cancelar pagamento")
 
     try:
         fluxo = int(input(">> ")) 
@@ -34,29 +36,46 @@ def pagamento(total, carrinho):
 
         if fluxo == 3:
             print("Insira quantas parcelas voçe deseja parcelar.")
-            try:
+            while True:
                 parcelas = int(input(">> "))
                 if parcelas >= 2 and parcelas <= 5:
                     total_par = total / parcelas
                     print(f"O valor de cada parcela sem juros ficou em R${total_par:.2f}")
+                    break
                 elif parcelas >= 6 and parcelas <= 15:
                     total_plus = total * 1.10
                     total_plus /= parcelas
                     print(f"O valor de cada parcela com juros de 10% ficou em R${total_plus:.2f}")
-            except:
-                print("Escolha um numero valido de parcelas.")
-                return pagamento(total)
+                    break
+                else:
+                    print("Escolha um numero valido de parcelas.")
+                    continue
         
         if fluxo == 4:
             print("Pagamento cancelado pelo cliente.")
-            return
+            return 
         
+        while True:
+            print("Deseja confirmar o pagamento? (S/N)")
+            resposta = input().lower()
+            if resposta == "s":
+                print("Pagamento concluido!!")
+                break
+            elif resposta == "n":
+                print("Pagamento cancelado pelo usuario.")
+                return
+            else:
+                print("Escolha uma opção valida")
+                continue
+
     except:
         print("Por que vc esta sempre tentando quebrar o codico???")
         return 
     else:
-        #pop(carrinho)
-        print("Obirgado pela compra e volte sempre!!")
+        total = 0
+        carrinho.clear()
+        print("Obrigado pela compra e volte sempre!!")
+        print("-"*110)
         return carrinho
 
 #função que chama um menu que mostrara os itens disponiveis e seus preços
@@ -70,7 +89,7 @@ def ver_menu():
 #função que adiciona ou remove itens em um carrinho de compras que reune todos os itens que o usuario selecionar a uma lista 
 def alterar_carrinho(carrinho):
         
-        print("digite (1) caso deseje adicionar itens ao carrinho, (2) para remover itens e (3) para voltar ao menu:")
+        print("digite (1) caso deseje adicionar itens ao carrinho  (2) para remover itens  (3) para voltar ao menu:")
         try:
             entrada = []
             fluxo = int(input(">> "))
@@ -78,33 +97,35 @@ def alterar_carrinho(carrinho):
             if fluxo == 1:
                 try:
                     print("Digite o ID do item que voçe deseja comprar: ")
-                    entrada = int(input(">> "))
-
-                    if entrada in estoque:
-                        carrinho.append(entrada)
-                        print(f"O item '{estoque[entrada]['nome']}' no valor de R${estoque[entrada]['preco']:.2f} foi adicionado ao carrinho")
+                    txt_usuario = input(">> ")
+                    entrada = [int(id.strip()) for id in txt_usuario.split(",")]
+                    #a linha acima foi a unica q peguei a ideia da IA, paia demaisi
+                    for item in entrada:
+                            carrinho.append(item)
+                            print(f"O item '{estoque[item]['nome']}' no valor de R${estoque[item]['preco']:.2f} foi adicionado ao carrinho")
                 except:
                     print("Item inexistente, nenhum item foi adicionado ao carrinho")
                     return 
             if fluxo == 2:
-                print("Digite o ID do item que voçe deseja remover: ")
+                print("Digite o ID do item que voçe deseja remover ou digite 0 para remover todos: ")
                 try:
                     entrada = int(input(">> "))
 
-                    if entrada == "": #or entrada not in estoque() or entrada not in carrinho:
-                        print("Nenhum item foi removido do carrinho")
-                        print("-"*48)
+                    if entrada == 0:
+                        carrinho.clear()
+                        print("Todos os itens foram removidos do carrinho")
+                        return
                     elif entrada not in carrinho:
                         print('O item digitado não esta no carrinho, caso queira ver seu carrinho volte volte ao menu')
                     
                     carrinho.remove(entrada) 
-                    print(f"Item de indice {entrada} removido com sucesso do seu carrinho")
+                    print(f"Item {estoque[entrada]['nome']} foi removido com sucesso do seu carrinho")
                 except:
                     print("Item inexistente, nenhum item foi removido ao carrinho")
                     return 
             if fluxo == 3:
                 print("Voltando ao menu...")
-                print("-"*48) 
+                print("-"*110) 
 
         except (ValueError, TypeError):
             print("Essa função do programa so aceita numeros como resposta.")
@@ -113,23 +134,22 @@ def alterar_carrinho(carrinho):
             print(f"Um erro inesperado aconteceu: {erro}")
             return 
         else:
-            print("-"*48)
+            print("-"*110)
             return carrinho
 
 #Função para a visualização dos itens no carrinho, mostra indice do item, nome, preço e ao final soma o valor dos itens e mostra o valor total
 def ver_carrinho(carrinho):
         fluxo_carrinho = 0
-        print("-"*48)
         if len(carrinho) != 0:
             total=0
             print(f'{"CARRINHO":^50}')
             print(f"| {'ID':<3} | {'Produto':<25} | {'Preço':<13} |")
-            print("-"*48)
+            print("-"*51)
             for item in carrinho:
-                print(f"| {item} | {estoque[item]['nome']:<25} | R${estoque[item]['preco']:<12.2f}|")
+                print(f"| {item}  | {estoque[item]['nome']:<25} | R${estoque[item]['preco']:<12.2f}|")
                 total = total + estoque[item]['preco']
             print(f"Valor total: R${total:.2f}")
-            print('-'*48)
+            print('-'*51)
             print("Digite (1) para confirmar seu pedido e ir a sessão de pagamento. Caso não, aperte qualquer tecla.")
             try:
                 fluxo_carrinho = int(input(">> "))
@@ -139,6 +159,7 @@ def ver_carrinho(carrinho):
                 return carrinho
         else:
             print("Nenhum item adicionado ao carrinho ainda!")
+            print('-'*110)
             return 
         return carrinho 
 
@@ -146,41 +167,39 @@ def ver_carrinho(carrinho):
 def menu_principal():
     carrinho = []
     while True:
-        print(f'{"Menu Principal":^80}')
-        print('-'* 48)
+        print(f'{"Menu Principal":^110}')
+        print('-'* 110)
         print("Opções:")
         print("(1) Ver Menu de Itens  (2) Adicionar/Remover Itens ao Carrinho   (3) Ver Carrinho e Confirmar Compra   (4)Sair")
-        
-        fluxo = int(input(">> "))
-
-        if fluxo == 1:
-                print("-"*48)
-                ver_menu()
-        elif fluxo == 2:
-                print("-"*48)
-                alterar_carrinho(carrinho)
-        elif fluxo == 3:
-                print("-"*48)
-                ver_carrinho(carrinho)
-        elif fluxo == 4:
-                print("Saindo...")
-                break
-        else:
-                print("Escolha uma opção valida para continuar")
-                print("-"*48)
-                continue    
+        try:
+            fluxo = int(input(">> "))
+            if fluxo == 1:
+                    print("-"*110)
+                    ver_menu()
+            elif fluxo == 2:
+                    print("-"*110)
+                    alterar_carrinho(carrinho)
+            elif fluxo == 3:
+                    print("-"*110)
+                    ver_carrinho(carrinho)
+            elif fluxo == 4:
+                    print("Saindo...")
+                    break
+        except:
+                    print("Escolha uma opção valida para continuar")
+                    print("-"*48)
+                    continue    
                    
 menu_principal()         
-#TODO fazer confirmação do pedido, podendo ser uma função nova, ou uma extensão da funçao de ver carrinho, ou um pouco dos dois, ela so podera ser acessada caso haja algum item no carrinho, ela funcionara dando opções de pagamento e desconto a cada uma, ao confirmar pagamento o carrinho deve ser limpo para o proximo uso   
 
 """Exemplo de fluxo para a V3:
 Início: O sistema exibe o menu de produtos com códigos e preços.
 Loop de Compra: O usuário digita o código (ex: 1).
 Validação: O sistema verifica se o código existe no dicionário.
 Carrinho: O sistema adiciona o indice do produto em uma lista chamada carrinho.
-TODO Fechamento: O usuário digita 0 ou fim. O sistema soma tudo, aplica os descontos que você já criou e pede a confirmação.
+Fechamento: O usuário digita 0 ou fim. O sistema soma tudo, aplica os descontos que você já criou e pede a confirmação.
+
 Itens a adicionar:
-1. menu de compra, função que quando chamada mostrara todos os peodutos e seus preços, usar um laço for.
+TODO 1. sistema de gerenciamento de estoque em outro arquivo python linkado a esse, que sera a pagina "vendedor", que fara todo controle de estoque e podemos mudar ate mesmo a variavel de estoque para la ou transformala em um arquivo proprio
 TODO 2. tenatar add um historico de compras, onde ao confirmar o pedido o python abre um arquivo.txt e escreve o produto, o preço, a quantidade, o horario e data
-TODO 3. adicionar um sistema de estoque, quantidade inicial de itens que ao serem comprados alteram o valor do estoque e implementar a visualização em outras funções, como as citadas acima
-TODO 4. adicionar como se fosse uma nota fiscal apos a confirmaçao da compra"""
+TODO 3. adicionar como se fosse uma nota fiscal apos a confirmaçao da compra"""
