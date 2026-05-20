@@ -1,4 +1,6 @@
 #dados e variaveis globais
+#porta do banco de dados do sql 3306    
+#usuario e senha root
 estoque = {
     1: {"nome": "Teclado Mecânico", "preco": 150.00},
     2: {"nome": "Mouse Gamer", "preco": 80.00},
