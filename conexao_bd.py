@@ -3,7 +3,7 @@ from mysql.connector import Error
 
 def criar_conexao():
     try:
-        conexao = mysql.connector.connection(
+        conexao = mysql.connector.connect(
             host="localhost",
             user="root",
             password="root",
