@@ -16,6 +16,8 @@ def ver_itens():
 
         if not produtos:
             print("Nenhum produto cadastrado ainda")
+            print('-'*110)
+            print()
             return
 
         print(f'{"--- Produtos Cadastrados ---":^110}')
@@ -28,8 +30,10 @@ def ver_itens():
             nome = produto['nome_produto']
             preco = produto['preco_produto']
             quantidade = produto['quantidade_estoque']
-            print(f"| {id:<4} | {nome:<25} | R${preco:<13.2f} | {quantidade:<4} |")
-        print("-"*55)
+            print(f"| {id:<4} | {nome:<25} | R${preco:^10.2f} | {quantidade:^7} |")
+        print("-"*110)
+        print()
+        print()
         return
 
     except Exception as erro:
@@ -70,7 +74,7 @@ def cadastro_itens():
                             
                 #parte de inserir itens no banco
                 try:
-                    comando = "INSERT INTO estoque (nome_produto, preco_produto, quantidade_estoque) VALUES (s%, s%, s%)"
+                    comando = "INSERT INTO estoque (nome_produto, preco_produto, quantidade_estoque) VALUES (%s, %s, %s)"
                     valores = (nome, valor, estoque)
                     cursor.execute(comando, valores)
                     conectar.commit()
@@ -81,13 +85,14 @@ def cadastro_itens():
 
                 print(f"O produto {nome} foi cadastrado com sucesso!")
                 print("Deseja continuar cadastrando produtos? (S/N)")
-                fluxo = input(">> ").lower
+                fluxo = input(">> ").lower()
                 if fluxo == "s":
+                    print("-"*110)
                     print("Insira as informações do novo produto:")
                     continue
                 else:
                     print("Voltando...")
-                    break
+                    return
 
             except:
                 print("Voçe inseriu algum dado em um formato não suportado")
@@ -101,11 +106,84 @@ def cadastro_itens():
         cursor.close()
         conectar.close()
 
-#TODO
 #Função de remover item do sistema, remove todas as informações do item, parte do fluxo 2
 def remover_cadastro():
-    pass
+    try:
+        conectar = criar_conexao()
+        if not conectar:
+            print("Problemas ao conectar ao banco de dados")
+            return
+        cursor = conectar.cursor(dictionary=True)
 
+        #parte da função que descreve o que o usuario deve fazer 
+        print(f"{'Remover Produtos':^110}")
+        print('-'* 110)
+        print("O sistema remove um item por vez, sera necessario somente o id  do produto, apos a confirmação o item sera excluido do sistema, use com cautela!")
+
+        #loop para continuar excluindo itens caso queira
+        while True:
+            print("Id do produto a ser excluido, ou 's' para voltar")
+            id_delete = input(">> ").lower()
+            #escolha de opções e tratamento da entrada 
+            try:
+                if id_delete == "s":
+                    print("Voltando...")
+                    return
+                
+                id_delete = int(id_delete)
+                id_delete = (id_delete,)
+
+                #verifica se o produto realmente existe no sistema
+                try:
+                    cursor.execute("SELECT nome_produto FROM estoque WHERE id_produto = %s;", id_delete)
+                    produto = cursor.fetchone()
+                    nome = produto['nome_produto']
+                except Exception as erro:
+                    print(f"Erro ao conectar com o banco de dados para conferir produto: {erro}")
+
+                if not produto:
+                    print("O ID digitado não esta cadastrado no estoque")
+                    print()
+                    continue
+                
+                #sse existe, confirma se quer excluir 
+                print(f"Deseja mesmo excluir o produto {nome}? 'S' para continuar")
+                fluxo1 = input(">> ").lower()
+                if fluxo1 != 's':
+                    print("Exclusão cancelada")
+                    return
+                
+                #comando de exclusao
+                try:
+                    comando = "DELETE FROM estoque WHERE id_produto = %s;"
+                    cursor.execute(comando, id_delete)
+                    conectar.commit()
+
+                except Exception as erro:
+                    print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
+                    return
+
+                #deseja continuar DELETANDO PRODUTOS?   
+                print(f"O produto {nome} foi excuido com sucesso!")
+                print("Deseja excluir mais algum produto? (S/N)")
+                fluxo = input(">> ").lower()
+                if fluxo == "s":
+                    continue
+                else:
+                    print("Voltando...")
+                    break
+
+#tratamento de erros e fechar o banco de dados
+            except:
+                print("Digite um ID valido")
+                continue
+    except Exception as erro:
+        print(f"Aconteceu um erro inesperado: {erro}")
+        return 
+    
+    finally:
+        conectar.close()
+        cursor.close()
 
 def menu_principal():
     while True:
@@ -132,6 +210,7 @@ def menu_principal():
                         remover_cadastro() 
                     elif fluxo2 == "3":
                         print("Voltando..")
+                        print()
                         break   
                     else:
                         print("escolha uma opção valida")
