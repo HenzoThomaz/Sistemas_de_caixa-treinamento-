@@ -123,26 +123,26 @@ def remover_cadastro():
         #loop para continuar excluindo itens caso queira
         while True:
             print("Id do produto a ser excluido, ou 's' para voltar")
-            id_delete = input(">> ").lower()
+            id_add_estoque = input(">> ").lower()
             #escolha de opções e tratamento da entrada 
             try:
-                if id_delete == "s":
+                if id_add_estoque == "s":
                     print("Voltando...")
                     return
                 
-                id_delete = int(id_delete)
-                id_delete = (id_delete,)
+                id_add_estoque = int(id_add_estoque)
+                id_add_estoque = (id_add_estoque,)
 
                 #verifica se o produto realmente existe no sistema
                 try:
-                    cursor.execute("SELECT nome_produto FROM estoque WHERE id_produto = %s;", id_delete)
+                    cursor.execute("SELECT nome_produto FROM estoque WHERE id_produto = %s;", id_add_estoque)
                     produto = cursor.fetchone()
                     nome = produto['nome_produto']
                 except Exception as erro:
                     print(f"Erro ao conectar com o banco de dados para conferir produto: {erro}")
 
                 if not produto:
-                    print("O ID digitado não esta cadastrado no estoque")
+                    print("O ID digitado não esta cadastrado no sitema")
                     print()
                     continue
                 
@@ -156,7 +156,7 @@ def remover_cadastro():
                 #comando de exclusao
                 try:
                     comando = "DELETE FROM estoque WHERE id_produto = %s;"
-                    cursor.execute(comando, id_delete)
+                    cursor.execute(comando, id_add_estoque)
                     conectar.commit()
 
                 except Exception as erro:
@@ -185,6 +185,96 @@ def remover_cadastro():
         conectar.close()
         cursor.close()
 
+#Função que verifica, atualiza e retorna o resultado atualizado de estoque para o usuario 
+def add_estoque():
+    try:
+        conectar = criar_conexao()
+        if not conectar:
+            print("Problemas ao conectar ao banco de dados")
+            return
+        cursor = conectar.cursor(dictionary=True)
+
+        #parte da função que descreve o que o usuario deve fazer 
+        print(f"{'Adicionar Estoque':^110}")
+        print('-'* 110)
+        print("O sistema adiciona a quantidade de estoque de um item por vez, sera necessario o id desse item.")
+
+        #loop para continuar add itens ao estoque
+        while True:
+            print("Id do produto, ou 's' para voltar")
+            id_add_estoque = input(">> ").lower()
+            #escolha de opções e tratamento da entrada 
+            try:
+                if id_add_estoque == "s":
+                    print("Voltando...")
+                    return
+                
+                id_add_estoque = int(id_add_estoque)
+                id_add_estoque = (id_add_estoque,)
+
+                #verifica se o produto realmente existe no sistema
+                try:
+                    cursor.execute("SELECT (nome_produto, estoque_produto) FROM estoque WHERE id_produto = %s;", id_add_estoque)
+                    produto = cursor.fetchall()
+                    nome = produto['nome_produto']
+                    estoque = produto['estoque_produto']
+                except Exception as erro:
+                    print(f"Erro ao conectar com o banco de dados para conferir produto: {erro}")
+
+                if not produto:
+                    print("O ID digitado não esta cadastrado no sitema")
+                    print()
+                    continue
+                
+                #se existe, continua a função e pede a quantidade a add
+                print(f"O produto {nome} tem um estoque atual de {estoque} unidades. Quantas unidades voçe deseja adicionar?")
+                novo_estoque = input(">> ")
+                try:
+                    novo_estoque = int(novo_estoque)
+                    novo_estoque = (novo_estoque,)
+                except:
+                    print("O sistema so aceita valores numerais inteiros, digite novamente o id do produto para continuar.")
+                    continue
+
+                #comando para  add o novo estoque retornar a quantidade em estoque atualizada
+                try:
+                    comando = "UPDATE estoque SET quantidade_estoque = quantidade_estoque + %s WHERE id_produto = %s;"
+                    cursor.execute(comando, estoque, id_add_estoque)
+                    conectar.commit()
+
+                    cursor.execute("SELECT estoque_produto FROM estoque WHERE id_produto = %s;", id_add_estoque)
+                    estoque_atual_bruto = cursor.fetchone()
+                    estoque_atual = estoque_atual_bruto['estoque_produto']
+
+                except Exception as erro:
+                    print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
+                    return
+                
+                print(f"O produto {nome} foi atualizado com sucesso!")
+                print(f"A quantidade para o produto {nome} agora eh de {estoque_atual} itens.")
+
+                #deseja continuar alterando estoque    
+                print("Deseja alterar o estoque de mais algum produto? (S/N)")
+                fluxo = input(">> ").lower()
+                if fluxo == "s":
+                    continue
+                else:
+                    print("Voltando...")
+                    break
+
+#tratamento de erros e fechar o banco de dados
+            except:
+                print("Digite um ID valido")
+                continue
+    except Exception as erro:
+        print(f"Aconteceu um erro inesperado: {erro}")
+        return 
+    
+    finally:
+        conectar.close()
+        cursor.close()
+
+#Função do menu, que redirecionara todo o fluxo do usuario
 def menu_principal():
     while True:
         print(f'{"Menu Principal do Funcionario":^110}')
