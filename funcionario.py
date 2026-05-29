@@ -210,14 +210,14 @@ def add_estoque():
                     return
                 
                 id_add_estoque = int(id_add_estoque)
-                id_add_estoque = (id_add_estoque,)
-
                 #verifica se o produto realmente existe no sistema
                 try:
-                    cursor.execute("SELECT (nome_produto, estoque_produto) FROM estoque WHERE id_produto = %s;", id_add_estoque)
+                    comando = "SELECT nome_produto, quantidade_estoque FROM estoque WHERE id_produto = %s;"
+                    cursor.execute(comando, (id_add_estoque,))
                     produto = cursor.fetchall()
-                    nome = produto['nome_produto']
-                    estoque = produto['estoque_produto']
+                    for i in produto:
+                        nome = i['nome_produto']
+                        estoque = i['quantidade_estoque']
                 except Exception as erro:
                     print(f"Erro ao conectar com o banco de dados para conferir produto: {erro}")
 
@@ -231,7 +231,7 @@ def add_estoque():
                 novo_estoque = input(">> ")
                 try:
                     novo_estoque = int(novo_estoque)
-                    novo_estoque = (novo_estoque,)
+
                 except:
                     print("O sistema so aceita valores numerais inteiros, digite novamente o id do produto para continuar.")
                     continue
@@ -239,12 +239,115 @@ def add_estoque():
                 #comando para  add o novo estoque retornar a quantidade em estoque atualizada
                 try:
                     comando = "UPDATE estoque SET quantidade_estoque = quantidade_estoque + %s WHERE id_produto = %s;"
-                    cursor.execute(comando, estoque, id_add_estoque)
+                    cursor.execute(comando, (novo_estoque,id_add_estoque))
                     conectar.commit()
 
-                    cursor.execute("SELECT estoque_produto FROM estoque WHERE id_produto = %s;", id_add_estoque)
+                    cursor.execute("SELECT quantidade_estoque FROM estoque WHERE id_produto = %s;", (id_add_estoque,))
                     estoque_atual_bruto = cursor.fetchone()
-                    estoque_atual = estoque_atual_bruto['estoque_produto']
+                    estoque_atual = estoque_atual_bruto['quantidade_estoque']
+
+                except Exception as erro:
+                    print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
+                    return
+                
+                print(f"O produto {nome} foi atualizado com sucesso!")
+                print(f"A quantidade para o produto {nome} agora eh de {estoque_atual} itens.")
+
+                #deseja continuar alterando estoque    
+                print("Deseja alterar o estoque de mais algum produto? (S/N)")
+                fluxo = input(">> ").lower()
+                if fluxo == "s":
+                    continue
+                else:
+                    print("Voltando...")
+                    break
+
+#tratamento de erros e fechar o banco de dados
+            except:
+                print("Digite um ID valido")
+                continue
+    except Exception as erro:
+        print(f"Aconteceu um erro inesperado: {erro}")
+        return 
+    
+    finally:
+        conectar.close()
+        cursor.close()
+
+def rem_estoque():
+    try:
+        conectar = criar_conexao()
+        if not conectar:
+            print("Problemas ao conectar ao banco de dados")
+            return
+        cursor = conectar.cursor(dictionary=True)
+
+        #parte da função que descreve o que o usuario deve fazer 
+        print(f"{'Remover Estoque':^110}")
+        print('-'* 110)
+        print("O sistema remove estoque de um item por vez, sera necessario o id desse item.")
+
+        #loop para continuar removendo itens ao estoque
+        while True:
+            print("Id do produto, ou 's' para voltar")
+            id_rem_estoque = input(">> ").lower()
+            #escolha de opções e tratamento da entrada 
+            try:
+                if id_rem_estoque == "s":
+                    print("Voltando...")
+                    return
+                
+                id_rem_estoque = int(id_rem_estoque)
+                #verifica se o produto realmente existe no sistema
+                try:
+                    comando = "SELECT nome_produto, quantidade_estoque FROM estoque WHERE id_produto = %s;"
+                    cursor.execute(comando, (id_rem_estoque,))
+                    produto = cursor.fetchall()
+                    for i in produto:
+                        nome = i['nome_produto']
+                        estoque = i['quantidade_estoque']
+                except Exception as erro:
+                    print(f"Erro ao conectar com o banco de dados para conferir produto: {erro}")
+
+                if not produto:
+                    print("O ID digitado não esta cadastrado no sitema")
+                    print()
+                    continue
+                
+                #se existe, continua a função e pede a quantidade a ser removida
+                print(f"O produto {nome} tem um estoque atual de {estoque} unidades. Quantas unidades voçe deseja remover?")
+                print("Ou digite 'Todos' para reomver todos.")
+                novo_estoque = input(">> ").lower()
+         #TODO
+                try:
+                    if novo_estoque == 'todos':
+                        try:
+                            comando = "UPDATE estoque REMOVE quantidade_estoque = quantidade_estoque + %s WHERE id_produto = %s;"
+                            cursor.execute(comando, (novo_estoque,id_rem_estoque))
+                            conectar.commit()
+
+                            cursor.execute("SELECT quantidade_estoque FROM estoque WHERE id_produto = %s;", (id_rem_estoque,))
+                            estoque_atual_bruto = cursor.fetchone()
+                            estoque_atual = estoque_atual_bruto['quantidade_estoque']
+
+                        except Exception as erro:
+                            print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
+                            return
+                            novo_estoque = int(novo_estoque)
+
+                except:
+                    print("O sistema so aceita valores numerais inteiros ou a palavra 'Todos', digite novamente para continuar.")
+                    continue
+
+                #comando para  add o novo estoque retornar a quantidade em estoque atualizada
+                try:
+                    comando = "UPDATE estoque SET quantidade_estoque = quantidade_estoque + %s WHERE id_produto = %s;"
+                    cursor.execute(comando, (novo_estoque,id_rem_estoque))
+                    conectar.commit()
+
+                    cursor.execute("SELECT quantidade_estoque FROM estoque WHERE id_produto = %s;", (id_rem_estoque,))
+                    estoque_atual_bruto = cursor.fetchone()
+                    estoque_atual = estoque_atual_bruto['quantidade_estoque']
 
                 except Exception as erro:
                     print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
@@ -288,11 +391,11 @@ def menu_principal():
                 ver_itens()
 
             elif fluxo == 2:
-                print("-"*110)
-                print(f'{"-- Cadastro e Exclusão de Produtos --":^110}')
-                print('-'* 110)
-                print("(1) Cadastrar Novo Produto  (2)Excluir Produto do Sistema  (3)Voltar")
                 while True:
+                    print("-"*110)
+                    print(f'{"-- Cadastro e Exclusão de Produtos --":^110}')
+                    print('-'* 110)
+                    print("(1) Cadastrar Novo Produto  (2)Excluir Produto do Sistema  (3)Voltar")
                     fluxo2 = input(">> ")
                     if fluxo2 == "1":
                         cadastro_itens()
@@ -305,13 +408,31 @@ def menu_principal():
                     else:
                         print("escolha uma opção valida")
                         continue
+                    break
 
             elif fluxo == 3:
+                while True:
                     print("-"*110)
-                    #lugar de chamar a função
+                    print(f'{"-- Adição e Remoção de Estoque --":^110}')
+                    print('-'* 110)
+                    print("(1) Adicionar Estoque a Produto  (2)Remover Estoque de Produto  (3)Voltar")
+                    fluxo3 = input(">> ")
+                    if fluxo3 == "1":
+                        add_estoque()
+                    elif fluxo3 == "2":
+                        pass
+                    elif fluxo3 == "3":
+                        print("Voltando..")
+                        print()
+                        break   
+                    else:
+                        print("escolha uma opção valida")
+                        continue
+                    break
             elif fluxo == 4:
                     print("Saindo...")
                     break
+            continue
         except:
                     print("Escolha uma opção valida para continuar")
                     print("-"*48)
