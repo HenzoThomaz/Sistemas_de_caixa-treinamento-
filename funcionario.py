@@ -23,7 +23,7 @@ def ver_itens():
         print(f'{"--- Produtos Cadastrados ---":^110}')
         print('-'*110)
         print(f"| {'ID':<4} | {'Produto':<25} | {'Preço':<13} | {'Estoque':<4} |")
-        print("-"*55)
+        print("-"*110)
 
         for produto in produtos:
             id = produto['id_produto']
@@ -67,6 +67,7 @@ def cadastro_itens():
                 valor = input(">> ")
                 print("Quantidade em estoque (Ex: 50) ")
                 estoque = int(input(">> "))
+                print()
                             
                 #tratamento de valor
                 valor = valor.replace(",",".")
@@ -86,6 +87,8 @@ def cadastro_itens():
                 print(f"O produto {nome} foi cadastrado com sucesso!")
                 print("Deseja continuar cadastrando produtos? (S/N)")
                 fluxo = input(">> ").lower()
+                print()
+
                 if fluxo == "s":
                     print("-"*110)
                     print("Insira as informações do novo produto:")
@@ -124,6 +127,8 @@ def remover_cadastro():
         while True:
             print("Id do produto a ser excluido, ou 's' para voltar")
             id_add_estoque = input(">> ").lower()
+            print()
+
             #escolha de opções e tratamento da entrada 
             try:
                 if id_add_estoque == "s":
@@ -149,6 +154,8 @@ def remover_cadastro():
                 #sse existe, confirma se quer excluir 
                 print(f"Deseja mesmo excluir o produto {nome}? 'S' para continuar")
                 fluxo1 = input(">> ").lower()
+                print()
+
                 if fluxo1 != 's':
                     print("Exclusão cancelada")
                     return
@@ -167,6 +174,8 @@ def remover_cadastro():
                 print(f"O produto {nome} foi excuido com sucesso!")
                 print("Deseja excluir mais algum produto? (S/N)")
                 fluxo = input(">> ").lower()
+                print()
+
                 if fluxo == "s":
                     continue
                 else:
@@ -203,6 +212,8 @@ def add_estoque():
         while True:
             print("Id do produto, ou 's' para voltar")
             id_add_estoque = input(">> ").lower()
+            print()
+
             #escolha de opções e tratamento da entrada 
             try:
                 if id_add_estoque == "s":
@@ -229,6 +240,8 @@ def add_estoque():
                 #se existe, continua a função e pede a quantidade a add
                 print(f"O produto {nome} tem um estoque atual de {estoque} unidades. Quantas unidades voçe deseja adicionar?")
                 novo_estoque = input(">> ")
+                print()
+
                 try:
                     novo_estoque = int(novo_estoque)
 
@@ -256,6 +269,8 @@ def add_estoque():
                 #deseja continuar alterando estoque    
                 print("Deseja alterar o estoque de mais algum produto? (S/N)")
                 fluxo = input(">> ").lower()
+                print()
+
                 if fluxo == "s":
                     continue
                 else:
@@ -274,6 +289,7 @@ def add_estoque():
         conectar.close()
         cursor.close()
 
+#Função de remover estoque, faz toda a validação de entrada e relaciona ao banco, remove e retorna resulatdo atualizado
 def rem_estoque():
     try:
         conectar = criar_conexao()
@@ -291,6 +307,8 @@ def rem_estoque():
         while True:
             print("Id do produto, ou 's' para voltar")
             id_rem_estoque = input(">> ").lower()
+            print()
+
             #escolha de opções e tratamento da entrada 
             try:
                 if id_rem_estoque == "s":
@@ -306,6 +324,7 @@ def rem_estoque():
                     for i in produto:
                         nome = i['nome_produto']
                         estoque = i['quantidade_estoque']
+                        estoque = int(estoque)
                 except Exception as erro:
                     print(f"Erro ao conectar com o banco de dados para conferir produto: {erro}")
 
@@ -313,52 +332,70 @@ def rem_estoque():
                     print("O ID digitado não esta cadastrado no sitema")
                     print()
                     continue
-                
+
+                if estoque ==0:
+                    print(f"O produto {nome}, esta com 0 unidades no estoque, não sera possivel remover estoque desse produto.")
+                    print("-"*110)
+                    print()
+                    return
+
                 #se existe, continua a função e pede a quantidade a ser removida
                 print(f"O produto {nome} tem um estoque atual de {estoque} unidades. Quantas unidades voçe deseja remover?")
                 print("Ou digite 'Todos' para reomver todos.")
                 novo_estoque = input(">> ").lower()
-         #TODO
+                print()
+
+                #se for todos ele usara o valor que puxou antes da quantidade atual para remover o todo o estoque
                 try:
                     if novo_estoque == 'todos':
                         try:
-                            comando = "UPDATE estoque REMOVE quantidade_estoque = quantidade_estoque + %s WHERE id_produto = %s;"
-                            cursor.execute(comando, (novo_estoque,id_rem_estoque))
+                            comando = "UPDATE estoque SET quantidade_estoque = quantidade_estoque - %s WHERE id_produto = %s;"
+                            cursor.execute(comando, (estoque,id_rem_estoque))
                             conectar.commit()
-
-                            cursor.execute("SELECT quantidade_estoque FROM estoque WHERE id_produto = %s;", (id_rem_estoque,))
-                            estoque_atual_bruto = cursor.fetchone()
-                            estoque_atual = estoque_atual_bruto['quantidade_estoque']
 
                         except Exception as erro:
                             print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
                             return
-                            novo_estoque = int(novo_estoque)
+
+                    #se nao for digitado 'todos' ele passara a tratar o input como um int e verificara se existe essa quantidade disponivel no estoque, se sim remove
+                    else:
+                        novo_estoque = int(novo_estoque)
+
+                        if novo_estoque > estoque:
+                            print("Voçe não pode remover mais itens do que o que há no estoque atualmente")
+                            print("Digite novamente o id para remover o estoque do item")
+                            continue
+
+                        else:
+                            try:
+                                comando = "UPDATE estoque SET quantidade_estoque = quantidade_estoque - %s WHERE id_produto = %s;"
+                                cursor.execute(comando, (novo_estoque,id_rem_estoque))
+                                conectar.commit()
+
+                            except Exception as erro:
+                                print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
+                                return 
 
                 except:
                     print("O sistema so aceita valores numerais inteiros ou a palavra 'Todos', digite novamente para continuar.")
                     continue
-
-                #comando para  add o novo estoque retornar a quantidade em estoque atualizada
                 try:
-                    comando = "UPDATE estoque SET quantidade_estoque = quantidade_estoque + %s WHERE id_produto = %s;"
-                    cursor.execute(comando, (novo_estoque,id_rem_estoque))
-                    conectar.commit()
-
                     cursor.execute("SELECT quantidade_estoque FROM estoque WHERE id_produto = %s;", (id_rem_estoque,))
                     estoque_atual_bruto = cursor.fetchone()
                     estoque_atual = estoque_atual_bruto['quantidade_estoque']
 
                 except Exception as erro:
-                    print(f"Ocorreu um erro ao enviar as informações ao banco: {erro}")
+                    print(f"Erro ao consultar estoque atual: {erro}")
                     return
-                
+
                 print(f"O produto {nome} foi atualizado com sucesso!")
-                print(f"A quantidade para o produto {nome} agora eh de {estoque_atual} itens.")
+                print(f"O estoque para o produto {nome} agora eh de {estoque_atual} itens.")
 
                 #deseja continuar alterando estoque    
                 print("Deseja alterar o estoque de mais algum produto? (S/N)")
                 fluxo = input(">> ").lower()
+                print()
+
                 if fluxo == "s":
                     continue
                 else:
@@ -383,9 +420,10 @@ def menu_principal():
         print(f'{"Menu Principal do Funcionario":^110}')
         print('-'* 110)
         print("Opções:")
-        print("(1) Ver Itens Cadastradoos e Estoque  (2) Cadastrar/Remover Itens  (3) Adicionar/Remover Estoque   (4)Sair")
+        print("(1) Ver Itens Cadastrados e Estoque  (2) Cadastrar/Remover Itens  (3) Adicionar/Remover Estoque   (4)Sair")
         try:
             fluxo = int(input(">> "))
+            print()
             if fluxo == 1:
                 print("-"*110)
                 ver_itens()
@@ -397,6 +435,7 @@ def menu_principal():
                     print('-'* 110)
                     print("(1) Cadastrar Novo Produto  (2)Excluir Produto do Sistema  (3)Voltar")
                     fluxo2 = input(">> ")
+                    print()
                     if fluxo2 == "1":
                         cadastro_itens()
                     elif fluxo2 == "2":
@@ -415,12 +454,14 @@ def menu_principal():
                     print("-"*110)
                     print(f'{"-- Adição e Remoção de Estoque --":^110}')
                     print('-'* 110)
-                    print("(1) Adicionar Estoque a Produto  (2)Remover Estoque de Produto  (3)Voltar")
+                    print("(1) Adicionar Estoque a Produto  (2) Remover Estoque de Produto  (3)Voltar")
                     fluxo3 = input(">> ")
+                    print()
+
                     if fluxo3 == "1":
                         add_estoque()
                     elif fluxo3 == "2":
-                        pass
+                        rem_estoque()
                     elif fluxo3 == "3":
                         print("Voltando..")
                         print()
@@ -435,7 +476,7 @@ def menu_principal():
             continue
         except:
                     print("Escolha uma opção valida para continuar")
-                    print("-"*48)
+                    print("-"*110)
                     continue    
                    
 menu_principal() 
